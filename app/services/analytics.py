@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
-from app.models.url import URL
+from app.models.url import URL, URLStatus
 from app.models.analytics import URLClick
 from app.models.user import User
 from app.database.connection import get_redis_client
@@ -288,7 +288,7 @@ class AnalyticsService:
         # Active URLs
         active_urls_result = await db.execute(
             select(func.count(URL.id)).where(
-                and_(URL.owner_id == user.id, URL.is_active == True)
+                and_(URL.owner_id == user.id, URL.status == URLStatus.ACTIVE)
             )
         )
         active_urls = active_urls_result.scalar() or 0

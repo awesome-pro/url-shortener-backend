@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.database.connection import close_redis_client
 from app.routers import auth, urls, analytics, redirect
+import psutil
 
 
 @asynccontextmanager
@@ -19,7 +20,8 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     debug=settings.debug,
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs"
 )
 
 # CORS middleware
@@ -49,4 +51,11 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "version": settings.app_version,
+        "memory": psutil.virtual_memory().percent,
+        "cpu": psutil.cpu_percent(),
+        "disk": psutil.disk_usage("/").percent,
+        "uptime": psutil.boot_time()
+    }

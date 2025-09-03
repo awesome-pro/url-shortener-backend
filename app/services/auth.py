@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
-from app.models.user import User
+from app.models.user import User, UserStatus
 from app.schemas.user import UserCreate, UserLogin
 from app.core.security import verify_password, get_password_hash, create_access_token
 from typing import Optional
@@ -53,7 +53,7 @@ class AuthService:
         if not user or not verify_password(login_data.password, user.hashed_password):
             return None
         
-        if not user.is_active:
+        if user.status != UserStatus.ACTIVE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Inactive user"
@@ -76,4 +76,4 @@ class AuthService:
     @staticmethod
     def create_user_token(user: User) -> str:
         """Create access token for user."""
-        return create_access_token(data={"sub": user.email, "user_id": user.id})
+        return create_access_token(data={"sub": user.email, "user_id": user.id, "role": user.role.value})

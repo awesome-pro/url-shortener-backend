@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db_session
 from app.core.security import verify_token
 from app.services.auth import AuthService
-from app.models.user import User
+from app.models.user import User, UserStatus
 from typing import Optional
 
 security = HTTPBearer()
@@ -45,7 +45,7 @@ async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """Get current active user."""
-    if not current_user.is_active:
+    if current_user.status != UserStatus.ACTIVE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"

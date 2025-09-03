@@ -2,9 +2,10 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, T
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
+import enum
 
 
-class URLStatus(Enum):
+class URLStatus(str, enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 

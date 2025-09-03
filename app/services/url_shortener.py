@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from fastapi import HTTPException, status
 from datetime import datetime, timedelta
-from app.models.url import URL
+from app.models.url import URL, URLStatus
 from app.models.user import User
 from app.schemas.url import URLCreate, URLUpdate
 from app.core.config import settings
@@ -99,18 +99,24 @@ class URLShortenerService:
                     await redis_client.delete(f"url:{short_code}")
                     return None
             
-            # Return cached data as URL object (for redirect purposes)
-            if url_data.get('is_active', True):
-                # We'll need to create a minimal URL object for redirect
-                # For full object, we still need to query the database
-                pass
+            # Check if active
+            if url_data.get('status') == URLStatus.ACTIVE.value:
+                # Create a minimal URL object for redirect
+                url = URL()
+                url.id = url_data['id']
+                url.original_url = url_data['original_url']
+                url.status = URLStatus(url_data['status'])
+                url.expires_at = datetime.fromisoformat(url_data['expires_at']) if url_data['expires_at'] else None
+                url.owner_id = url_data['owner_id']
+                url.short_code = short_code
+                return url
         
         # Get from database
         result = await db.execute(
             select(URL).where(
                 and_(
                     URL.short_code == short_code,
-                    URL.is_active == True
+                    URL.status == URLStatus.ACTIVE
                 )
             )
         )
@@ -214,7 +220,7 @@ class URLShortenerService:
         url_data = {
             "id": url.id,
             "original_url": url.original_url,
-            "is_active": url.is_active,
+            "status": url.status.value,
             "expires_at": url.expires_at.isoformat() if url.expires_at else None,
             "owner_id": url.owner_id
         }

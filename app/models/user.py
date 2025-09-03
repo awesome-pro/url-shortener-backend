@@ -2,12 +2,15 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
+import enum
 
-class UserRole(Enum):
+
+class UserRole(str, enum.Enum):
     ADMIN = "admin"
     USER = "user"
 
-class UserStatus(Enum):
+
+class UserStatus(str, enum.Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 
