@@ -1,19 +1,21 @@
-# Use Python 3.11 slim image
-FROM python:3.13-slim
+# Use Python 3.11 slim image (3.13 might have compatibility issues)
+FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    PORT=8080
 
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including curl for health checks
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         libpq-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -32,11 +34,11 @@ RUN adduser --disabled-password --gecos '' appuser \
 USER appuser
 
 # Expose port
-EXPOSE 8080
+EXPOSE $PORT
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Health check (make sure you have a /health endpoint in your FastAPI app)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:$PORT/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run the application - Use PORT from environment
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port $PORT
