@@ -7,7 +7,6 @@ from app.database.connection import close_redis_client
 from app.routers import auth, urls, analytics, redirect
 import psutil
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -33,13 +32,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router, prefix="/api")
-app.include_router(urls.router, prefix="/api")
-app.include_router(analytics.router, prefix="/api")
-app.include_router(redirect.router)  # No prefix for redirect
-
-
 @app.get("/")
 def read_root():
     return {
@@ -47,8 +39,7 @@ def read_root():
         "version": settings.app_version,
         "docs": "/docs"
     }
-
-
+    
 @app.get("/health")
 def health_check():
     return {
@@ -59,3 +50,9 @@ def health_check():
         "disk": psutil.disk_usage("/").percent,
         "uptime": psutil.boot_time()
     }
+
+# Include routers
+app.include_router(auth.router, prefix="/api")
+app.include_router(urls.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
+app.include_router(redirect.router)  # No prefix for redirect
