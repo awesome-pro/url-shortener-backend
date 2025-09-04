@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-
+from fastapi.responses import RedirectResponse
 from app.core.config import settings
 from app.database.connection import close_redis_client
 from app.routers import auth, urls, analytics, redirect
@@ -20,7 +20,7 @@ app = FastAPI(
     version=settings.app_version,
     debug=settings.debug,
     lifespan=lifespan,
-    docs_url="/docs"
+    # docs_url="/docs"
 )
 
 # CORS middleware
@@ -34,11 +34,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {
-        "message": "URL Shortener API",
-        "version": settings.app_version,
-        "docs": "/docs"
-    }
+    return RedirectResponse(url="https://shortenurl.abhinandan.pro", status_code=302)
     
 @app.get("/health")
 def health_check():
