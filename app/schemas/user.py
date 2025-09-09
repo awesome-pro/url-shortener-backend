@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from app.models.user import UserRole, UserStatus
+from app.utils.pagination import PaginatedResponse
 
 
 class UserBase(BaseModel):
@@ -32,6 +33,9 @@ class UserResponse(UserBase):
     
     class Config:
         from_attributes = True
+    
+class UserListResponse(PaginatedResponse[UserResponse]):
+    pass
 
 
 class UserProfile(UserResponse):

@@ -8,6 +8,8 @@ from app.services.analytics import AnalyticsService
 from app.core.deps import get_current_active_user
 from app.models.user import User
 from app.core.config import settings
+from app.core.pagination_deps import PaginationDep
+from app.utils.pagination import PaginatedResponse
 import math
 
 router = APIRouter(prefix="/urls", tags=["URLs"])
@@ -42,14 +44,12 @@ async def create_short_url(
 
 @router.get("/", response_model=URLListResponse)
 async def get_user_urls(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
+    pagination: PaginationDep,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
     """Get user's URLs with pagination."""
-    skip = (page - 1) * per_page
-    urls, total = await URLShortenerService.get_user_urls(db, current_user, skip, per_page)
+    urls, total = await URLShortenerService.get_user_urls(db, current_user, pagination.skip, pagination.limit)
     
     # Add short_url to each URL
     urls_with_short_url = []
@@ -69,15 +69,12 @@ async def get_user_urls(
         }
         urls_with_short_url.append(url_dict)
     
-    pages = math.ceil(total / per_page)
-    
-    return {
-        "urls": urls_with_short_url,
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "pages": pages
-    }
+    return PaginatedResponse.create(
+        data=urls_with_short_url,
+        page=pagination.page,
+        limit=pagination.limit,
+        total=total
+    )
 
 
 @router.get("/{url_id}", response_model=URLResponse)

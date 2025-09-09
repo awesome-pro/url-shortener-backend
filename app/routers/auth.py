@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db_session
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
+from app.schemas.user import UserCreate, UserListResponse, UserLogin, UserResponse
 from app.services.auth import AuthService
 from app.core.deps import get_current_active_user
 from app.core.config import settings
 from app.models.user import User
+from app.core.pagination_deps import PaginationDep
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -81,3 +82,12 @@ async def sign_out(
     """Sign out user and clear access token."""
     response.delete_cookie("access_token")
     return {"message": "Successfully logged out"}
+
+
+@router.get("/users", response_model=UserListResponse)
+async def get_users(
+    pagination: PaginationDep,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Get all users."""
+    return await AuthService.get_users(db, pagination)

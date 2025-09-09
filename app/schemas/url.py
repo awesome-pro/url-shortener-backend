@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from app.models.url import URLStatus
+from app.utils.pagination import PaginatedResponse
 
 
 class URLBase(BaseModel):
@@ -37,12 +38,8 @@ class URLResponse(URLBase):
         from_attributes = True
 
 
-class URLListResponse(BaseModel):
-    urls: List[URLResponse]
-    total: int
-    page: int
-    per_page: int
-    pages: int
+# Using the new generic pagination response
+URLListResponse = PaginatedResponse[URLResponse]
 
 
 class URLAnalytics(BaseModel):

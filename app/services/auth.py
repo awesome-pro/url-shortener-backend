@@ -1,10 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, status
 from app.models.user import User, UserStatus
-from app.schemas.user import UserCreate, UserLogin, UserProfile
+from app.schemas.user import UserCreate, UserListResponse, UserLogin, UserProfile
 from app.core.security import verify_password, get_password_hash, create_access_token
 from typing import Optional
+
+from app.core.pagination_deps import PaginationDep
+from app.services.pagination_service import PaginationService
+from app.utils.pagination import PaginatedResponse
 
 
 class AuthService:
@@ -88,3 +92,11 @@ class AuthService:
     def create_user_token(user: User) -> str:
         """Create access token for user."""
         return create_access_token(data={"sub": user.id, "email": user.email, "role": user.role.value})
+
+
+    @staticmethod
+    async def get_users(db: AsyncSession, pagination: PaginationDep) -> UserListResponse:
+        """Get all users."""
+        users = await db.execute(select(User).offset(pagination.skip).limit(pagination.limit))
+        total = await db.execute(select(func.count()).select_from(User))
+        return PaginatedResponse.create(data=users.scalars().all(), page=pagination.page, limit=pagination.limit, total=total.scalar())
