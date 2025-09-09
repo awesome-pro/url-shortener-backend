@@ -2,13 +2,12 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
 
-from app.models.user import UserStatus
+from app.models.user import UserRole, UserStatus
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str = Field(..., min_length=3, max_length=50)
-
+    username: str = Field(..., min_length=2, max_length=50)
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=100)
@@ -19,8 +18,15 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(..., min_length=2, max_length=255)
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    status: Optional[UserStatus] = None
+
 class UserResponse(UserBase):
     id: int
+    role: UserRole
     status: UserStatus
     created_at: datetime
     
@@ -40,4 +46,6 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
+    id: Optional[str] = None
     email: Optional[str] = None
+    role: Optional[UserRole] = None

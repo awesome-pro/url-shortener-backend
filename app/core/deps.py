@@ -6,40 +6,55 @@ from app.core.security import verify_token
 from app.services.auth import AuthService
 from app.models.user import User, UserStatus
 from typing import Optional
+from fastapi import Request
 
 security = HTTPBearer()
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
     db: AsyncSession = Depends(get_db_session)
 ) -> User:
-    """Get current authenticated user."""
-    token = credentials.credentials
+    """Get current authenticated user from cookie."""
+    token = request.cookies.get("access_token")
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
     
     try:
         payload = verify_token(token)
-        email: str = payload.get("sub")
-        if email is None:
+        user_id: str | None = payload.get("sub")
+        if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
-    except Exception:
+        
+    except ValueError:
+        print("Exception in get_current_user: Invalid user ID format")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID in token",
+        )
+    except Exception as e:
+        print("Exception in get_current_user", e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
     
-    user = await AuthService.get_user_by_email(db, email=email)
+    user = await AuthService.get_user_by_id(db, user_id=user_id)
     if user is None:
+        print("User not found in get_current_user")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
     
     return user
-
 
 async def get_current_active_user(
     current_user: User = Depends(get_current_user)
@@ -68,7 +83,7 @@ async def get_optional_current_user(
             return None
         
         payload = verify_token(token)
-        email: str = payload.get("sub")
+        email: str | None = payload.get("sub")
         if email is None:
             return None
         

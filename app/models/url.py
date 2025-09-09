@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Text, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Enum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database.connection import Base
 import enum
-
+import uuid
 
 class URLStatus(str, enum.Enum):
     ACTIVE = "active"
@@ -13,7 +13,7 @@ class URLStatus(str, enum.Enum):
 class URL(Base):
     __tablename__ = "urls"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(255), primary_key=True, index=True, default=uuid.uuid4().hex)
     original_url = Column(Text, nullable=False)
     short_code = Column(String(10), unique=True, index=True, nullable=False)
     title = Column(String(255), nullable=True)
@@ -25,7 +25,8 @@ class URL(Base):
     expires_at = Column(DateTime(timezone=True), nullable=True)
     
     # Foreign Key
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    owner_id = Column(String(255), ForeignKey("users.id"), nullable=False)
     
     # Relationship
     owner = relationship("User", back_populates="urls")
