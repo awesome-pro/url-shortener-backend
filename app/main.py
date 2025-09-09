@@ -36,16 +36,29 @@ app.add_middleware(
 def read_root():
     return RedirectResponse(url="https://shortenurl.abhinandan.pro", status_code=302)
     
-@app.get("/health")
-def health_check():
-    return {
+@app.get(
+    "/health",
+    summary="System Health Check",
+    description="Comprehensive health check endpoint for monitoring system performance and uptime",
+    tags=["Health Check"]
+)
+async def health_check():
+    """
+    Enhanced health check with performance metrics.
+    Used by search engines and monitoring systems to verify service availability.
+    """
+    health_data = {
         "status": "healthy",
+        "service": "ShortURL API",
         "version": settings.app_version,
-        "memory": psutil.virtual_memory().percent,
-        "cpu": psutil.cpu_percent(),
-        "disk": psutil.disk_usage("/").percent,
-        "uptime": psutil.boot_time()
+        "uptime_seconds": psutil.boot_time(),
+        "performance": {
+            "memory_usage_percent": psutil.virtual_memory().percent,
+            "cpu_usage_percent": psutil.cpu_percent(interval=1),
+            "disk_usage_percent": psutil.disk_usage("/").percent
+        },
     }
+    return health_data
 
 # Include routers
 app.include_router(auth.router, prefix="/api")
