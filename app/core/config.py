@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     app_name: str = Field(default="URL Shortener", env="APP_NAME")
     app_version: str = Field(default="1.0.0", env="APP_VERSION")
     debug: bool = Field(default=False, env="DEBUG")
-    base_url: str = Field(default="http://localhost:8000", env="BASE_URL")
+    base_url: str = Field(default="http://localhost:8080", env="BASE_URL")
     
     # CORS
     allowed_origins: List[str] = Field(
@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     # Analytics
     enable_analytics: bool = Field(default=True, env="ENABLE_ANALYTICS")
     cache_ttl: int = Field(default=3600, env="CACHE_TTL")  # 1 hour
+    
+    # Google OAuth
+    google_client_id: str = Field(default="", env="GOOGLE_CLIENT_ID")
+    google_client_secret: str = Field(default="", env="GOOGLE_CLIENT_SECRET")
+    google_redirect_uri: str = Field(default="http://localhost:3000/auth/callback/google", env="GOOGLE_REDIRECT_URI")
     
     class Config:
         env_file = ".env"

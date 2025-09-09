@@ -2,13 +2,13 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
 
-from app.models.user import UserStatus
+from app.models.user import UserRole, UserStatus
+from app.utils.pagination import PaginatedResponse
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str = Field(..., min_length=3, max_length=50)
-
+    username: str = Field(..., min_length=2, max_length=50)
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=100)
@@ -19,13 +19,27 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(..., min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    status: Optional[UserStatus] = None
+
 class UserResponse(UserBase):
-    id: int
+    id: str
+    role: UserRole
     status: UserStatus
+    google_id: Optional[str] = None
+    avatar_url: Optional[str] = None
+    is_oauth_user: bool = False
     created_at: datetime
     
     class Config:
         from_attributes = True
+    
+class UserListResponse(PaginatedResponse[UserResponse]):
+    pass
 
 
 class UserProfile(UserResponse):
@@ -40,4 +54,22 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
+    id: Optional[str] = None
     email: Optional[str] = None
+    role: Optional[UserRole] = None
+
+
+class GoogleOAuthRequest(BaseModel):
+    """Schema for Google OAuth token verification"""
+    id_token: str
+
+
+class GoogleOAuthCallback(BaseModel):
+    """Schema for Google OAuth callback with authorization code"""
+    code: str
+    state: Optional[str] = None
+
+
+class GoogleOAuthURL(BaseModel):
+    """Schema for Google OAuth authorization URL response"""
+    auth_url: str

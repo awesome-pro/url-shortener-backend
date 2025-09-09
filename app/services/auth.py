@@ -1,10 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, status
 from app.models.user import User, UserStatus
-from app.schemas.user import UserCreate, UserLogin
+from app.schemas.user import UserCreate, UserListResponse, UserLogin, UserProfile
 from app.core.security import verify_password, get_password_hash, create_access_token
 from typing import Optional
+
+from app.core.pagination_deps import PaginationDep
+from app.utils.pagination import PaginatedResponse
 
 
 class AuthService:
@@ -50,13 +53,30 @@ class AuthService:
         result = await db.execute(select(User).where(User.email == login_data.email))
         user = result.scalars().first()
         
-        if not user or not verify_password(login_data.password, user.hashed_password):
-            return None
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+        
+        # Check if user is OAuth-only user trying to login with password
+        if user.is_oauth_user and not user.hashed_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This account uses Google sign-in. Please sign in with Google."
+            )
+        
+        # Verify password for regular users
+        if not user.hashed_password or not verify_password(login_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
         
         if user.status != UserStatus.ACTIVE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user"
+                detail="Inactive or Suspended user"
             )
         
         return user
@@ -68,12 +88,28 @@ class AuthService:
         return result.scalars().first()
     
     @staticmethod
-    async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
+    async def get_user_by_id(db: AsyncSession, user_id: str) -> Optional[User]:
         """Get user by ID."""
         result = await db.execute(select(User).where(User.id == user_id))
         return result.scalars().first()
+
+    @staticmethod
+    async def get_user_profile(db: AsyncSession, user_id: str) -> Optional[UserProfile]:
+        """Get user profile."""
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+        
+        return user
     
     @staticmethod
     def create_user_token(user: User) -> str:
         """Create access token for user."""
-        return create_access_token(data={"sub": user.email, "user_id": user.id, "role": user.role.value})
+        return create_access_token(data={"sub": user.id, "email": user.email, "role": user.role.value})
+
+
+    @staticmethod
+    async def get_users(db: AsyncSession, pagination: PaginationDep) -> UserListResponse:
+        """Get all users."""
+        users = await db.execute(select(User).offset(pagination.skip).limit(pagination.limit))
+        total = await db.execute(select(func.count()).select_from(User))
+        return PaginatedResponse.create(data=users.scalars().all(), page=pagination.page, limit=pagination.limit, total=total.scalar())

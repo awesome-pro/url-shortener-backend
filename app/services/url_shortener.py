@@ -157,7 +157,7 @@ class URLShortenerService:
     @staticmethod
     async def update_url(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         user: User,
         url_update: URLUpdate
     ) -> Optional[URL]:
@@ -188,7 +188,7 @@ class URLShortenerService:
     @staticmethod
     async def delete_url(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         user: User
     ) -> bool:
         """Delete a URL."""

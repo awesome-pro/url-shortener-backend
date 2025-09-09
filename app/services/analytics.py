@@ -36,7 +36,7 @@ class AnalyticsService:
         await AnalyticsService._increment_click_count_cache(url.short_code)
     
     @staticmethod
-    async def _increment_click_count_db(db: AsyncSession, url_id: int):
+    async def _increment_click_count_db(db: AsyncSession, url_id: str):
         """Increment click count in database (async)."""
         try:
             # Create a new session for this async operation
@@ -54,7 +54,7 @@ class AnalyticsService:
     @staticmethod
     async def _store_click_details(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         ip_address: str,
         user_agent: Optional[str],
         referer: Optional[str]
@@ -97,7 +97,7 @@ class AnalyticsService:
     @staticmethod
     async def get_url_analytics(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         user: User
     ) -> Optional[Dict]:
         """Get analytics for a specific URL."""
@@ -177,7 +177,7 @@ class AnalyticsService:
     @staticmethod
     async def get_daily_clicks(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         user: User,
         days: int = 30
     ) -> List[Dict]:
@@ -224,7 +224,7 @@ class AnalyticsService:
     @staticmethod
     async def get_top_referrers(
         db: AsyncSession,
-        url_id: int,
+        url_id: str,
         user: User,
         limit: int = 10
     ) -> List[Dict]:

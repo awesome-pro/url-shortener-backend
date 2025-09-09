@@ -8,6 +8,8 @@ from app.services.analytics import AnalyticsService
 from app.core.deps import get_current_active_user
 from app.models.user import User
 from app.core.config import settings
+from app.core.pagination_deps import PaginationDep
+from app.utils.pagination import PaginatedResponse
 import math
 
 router = APIRouter(prefix="/urls", tags=["URLs"])
@@ -42,14 +44,12 @@ async def create_short_url(
 
 @router.get("/", response_model=URLListResponse)
 async def get_user_urls(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
+    pagination: PaginationDep,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
     """Get user's URLs with pagination."""
-    skip = (page - 1) * per_page
-    urls, total = await URLShortenerService.get_user_urls(db, current_user, skip, per_page)
+    urls, total = await URLShortenerService.get_user_urls(db, current_user, pagination.skip, pagination.limit)
     
     # Add short_url to each URL
     urls_with_short_url = []
@@ -69,20 +69,17 @@ async def get_user_urls(
         }
         urls_with_short_url.append(url_dict)
     
-    pages = math.ceil(total / per_page)
-    
-    return {
-        "urls": urls_with_short_url,
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "pages": pages
-    }
+    return PaginatedResponse.create(
+        data=urls_with_short_url,
+        page=pagination.page,
+        limit=pagination.limit,
+        total=total
+    )
 
 
 @router.get("/{url_id}", response_model=URLResponse)
 async def get_url(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -122,7 +119,7 @@ async def get_url(
 
 @router.put("/{url_id}", response_model=URLResponse)
 async def update_url(
-    url_id: int,
+    url_id: str,
     url_update: URLUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
@@ -155,7 +152,7 @@ async def update_url(
 
 @router.delete("/{url_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_url(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -171,7 +168,7 @@ async def delete_url(
 
 @router.get("/{url_id}/analytics")
 async def get_url_analytics(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -189,7 +186,7 @@ async def get_url_analytics(
 
 @router.get("/{url_id}/analytics/daily")
 async def get_url_daily_analytics(
-    url_id: int,
+    url_id: str,
     days: int = Query(30, ge=1, le=365),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
@@ -201,7 +198,7 @@ async def get_url_daily_analytics(
 
 @router.get("/{url_id}/analytics/referrers")
 async def get_url_referrers(
-    url_id: int,
+    url_id: str,
     limit: int = Query(10, ge=1, le=50),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
