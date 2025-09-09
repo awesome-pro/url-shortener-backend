@@ -14,7 +14,8 @@ def set_auth_cookie(response: Response, token: str) -> None:
             max_age=settings.jwt_access_token_expire_minutes * 60,
             httponly=True,
             secure=False,  # HTTP in development
-            samesite="lax"
+            samesite="lax",
+            # domain=settings.cookie_domain
         )
     else:
         # Production settings for cross-subdomain
@@ -25,6 +26,7 @@ def set_auth_cookie(response: Response, token: str) -> None:
             httponly=True,
             secure=True,  # HTTPS required
             samesite="none",  # Required for cross-site requests
+            domain=settings.cookie_domain
         )
 
 
@@ -38,6 +40,7 @@ def clear_auth_cookie(response: Response) -> None:
         # Production - must match the domain used when setting
         response.delete_cookie(
             "access_token",
+            domain=settings.cookie_domain,
             secure=True,
             samesite="none"
         )
