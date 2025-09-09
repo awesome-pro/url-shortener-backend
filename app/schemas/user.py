@@ -21,12 +21,13 @@ class UserLogin(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(..., min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
     password: Optional[str] = None
     role: Optional[UserRole] = None
     status: Optional[UserStatus] = None
 
 class UserResponse(UserBase):
-    id: int
+    id: str
     role: UserRole
     status: UserStatus
     created_at: datetime

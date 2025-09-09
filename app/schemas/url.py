@@ -25,7 +25,7 @@ class URLUpdate(BaseModel):
 
 
 class URLResponse(URLBase):
-    id: int
+    id: str
     short_code: str
     status: URLStatus
     click_count: int
@@ -43,7 +43,7 @@ URLListResponse = PaginatedResponse[URLResponse]
 
 
 class URLAnalytics(BaseModel):
-    url_id: int
+    url_id: str
     short_code: str
     original_url: str
     total_clicks: int

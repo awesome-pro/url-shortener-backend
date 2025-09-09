@@ -79,7 +79,7 @@ async def get_user_urls(
 
 @router.get("/{url_id}", response_model=URLResponse)
 async def get_url(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -119,7 +119,7 @@ async def get_url(
 
 @router.put("/{url_id}", response_model=URLResponse)
 async def update_url(
-    url_id: int,
+    url_id: str,
     url_update: URLUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
@@ -152,7 +152,7 @@ async def update_url(
 
 @router.delete("/{url_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_url(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -168,7 +168,7 @@ async def delete_url(
 
 @router.get("/{url_id}/analytics")
 async def get_url_analytics(
-    url_id: int,
+    url_id: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
 ):
@@ -186,7 +186,7 @@ async def get_url_analytics(
 
 @router.get("/{url_id}/analytics/daily")
 async def get_url_daily_analytics(
-    url_id: int,
+    url_id: str,
     days: int = Query(30, ge=1, le=365),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
@@ -198,7 +198,7 @@ async def get_url_daily_analytics(
 
 @router.get("/{url_id}/analytics/referrers")
 async def get_url_referrers(
-    url_id: int,
+    url_id: str,
     limit: int = Query(10, ge=1, le=50),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db_session)
