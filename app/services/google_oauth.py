@@ -207,7 +207,6 @@ class GoogleOAuthService:
                         "redirect_uri": settings.google_redirect_uri,
                     }
                 )
-                print("response", response.json())
                 
                 if response.status_code != 200:
                     raise HTTPException(
