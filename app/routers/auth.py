@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db_session
-from app.schemas.user import UserCreate, UserListResponse, UserLogin, UserResponse
+from app.schemas.user import (
+    UserCreate, UserListResponse, UserLogin, UserResponse,
+    GoogleOAuthRequest, GoogleOAuthCallback, GoogleOAuthURL
+)
 from app.services.auth import AuthService
+from app.services.google_oauth import GoogleOAuthService
 from app.core.deps import get_current_active_user
 from app.core.config import settings
 from app.models.user import User
@@ -91,3 +95,92 @@ async def get_users(
 ):
     """Get all users."""
     return await AuthService.get_users(db, pagination)
+
+
+# Google OAuth endpoints
+@router.get("/google/url", response_model=GoogleOAuthURL)
+async def get_google_oauth_url():
+    """Get Google OAuth authorization URL."""
+    auth_url = await GoogleOAuthService.get_google_oauth_url()
+    return GoogleOAuthURL(auth_url=auth_url)
+
+
+@router.post("/google/callback", response_model=UserResponse)
+async def google_oauth_callback(
+    callback_data: GoogleOAuthCallback,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Handle Google OAuth callback with authorization code."""
+    try:
+        # Exchange code for tokens
+        tokens = await GoogleOAuthService.exchange_code_for_tokens(callback_data.code)
+        
+        # Get user info using access token
+        google_user_info = await GoogleOAuthService.get_google_user_info(tokens['access_token'])
+        
+        # Add Google ID to user info
+        google_user_info['google_id'] = google_user_info['id']
+        
+        # Find or create user
+        user = await GoogleOAuthService.find_or_create_oauth_user(db, google_user_info)
+        
+        # Create JWT token
+        access_token = AuthService.create_user_token(user)
+        
+        # Set cookie
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            max_age=settings.jwt_access_token_expire_minutes * 60,
+            httponly=True,
+            secure=not settings.debug,
+            samesite="lax"
+        )
+        
+        return user
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"OAuth authentication failed: {str(e)}"
+        )
+
+
+@router.post("/google/verify", response_model=UserResponse)
+async def google_oauth_verify(
+    oauth_request: GoogleOAuthRequest,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """Verify Google ID token and authenticate user."""
+    try:
+        # Verify ID token
+        google_user_info = await GoogleOAuthService.verify_google_token(oauth_request.id_token)
+        
+        # Find or create user
+        user = await GoogleOAuthService.find_or_create_oauth_user(db, google_user_info)
+        
+        # Create JWT token
+        access_token = AuthService.create_user_token(user)
+        
+        # Set cookie
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            max_age=settings.jwt_access_token_expire_minutes * 60,
+            httponly=True,
+            secure=not settings.debug,
+            samesite="lax"
+        )
+        
+        return user
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"OAuth authentication failed: {str(e)}"
+        )

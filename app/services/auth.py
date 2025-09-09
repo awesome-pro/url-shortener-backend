@@ -54,7 +54,21 @@ class AuthService:
         result = await db.execute(select(User).where(User.email == login_data.email))
         user = result.scalars().first()
         
-        if not user or not verify_password(login_data.password, user.hashed_password):
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+        
+        # Check if user is OAuth-only user trying to login with password
+        if user.is_oauth_user and not user.hashed_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This account uses Google sign-in. Please sign in with Google."
+            )
+        
+        # Verify password for regular users
+        if not user.hashed_password or not verify_password(login_data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
