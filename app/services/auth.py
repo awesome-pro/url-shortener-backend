@@ -7,7 +7,6 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from typing import Optional
 
 from app.core.pagination_deps import PaginationDep
-from app.services.pagination_service import PaginationService
 from app.utils.pagination import PaginatedResponse
 
 
