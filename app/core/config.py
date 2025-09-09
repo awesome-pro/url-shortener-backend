@@ -23,9 +23,13 @@ class Settings(BaseSettings):
     
     # CORS
     allowed_origins: List[str] = Field(
-        default=["http://localhost:3000", "https://shortenurl.abhinandan.pro"], 
+        default=["http://localhost:3000", "https://shortenurl.abhinandan.pro", "https://shorturl.abhinandan.pro"], 
         env="ALLOWED_ORIGINS"
     )
+    
+    # Cookie settings for cross-domain
+    cookie_domain: str = Field(default=".abhinandan.pro", env="COOKIE_DOMAIN")  # Leading dot for subdomain sharing
+    frontend_url: str = Field(default="https://shortenurl.abhinandan.pro", env="FRONTEND_URL")
     
     # Short URL Configuration
     short_code_length: int = Field(default=6, env="SHORT_CODE_LENGTH")
@@ -38,7 +42,7 @@ class Settings(BaseSettings):
     # Google OAuth
     google_client_id: str = Field(default="", env="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field(default="", env="GOOGLE_CLIENT_SECRET")
-    google_redirect_uri: str = Field(default="http://localhost:3000/auth/callback/google", env="GOOGLE_REDIRECT_URI")
+    google_redirect_uri: str = Field(default="https://shortenurl.abhinandan.pro/auth/callback/google", env="GOOGLE_REDIRECT_URI")
     
     class Config:
         env_file = ".env"

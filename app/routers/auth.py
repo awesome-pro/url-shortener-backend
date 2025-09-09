@@ -9,6 +9,7 @@ from app.services.auth import AuthService
 from app.services.google_oauth import GoogleOAuthService
 from app.core.deps import get_current_active_user
 from app.core.config import settings
+from app.core.cookies import set_auth_cookie, clear_auth_cookie
 from app.models.user import User
 from app.core.pagination_deps import PaginationDep
 
@@ -24,14 +25,7 @@ async def register(
     """Register a new user."""
     user = await AuthService.create_user(db, user_data)
     access_token = AuthService.create_user_token(user)
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        max_age=settings.jwt_access_token_expire_minutes * 60,
-        httponly=True,
-        secure=not settings.debug,
-        samesite="lax"
-    )
+    set_auth_cookie(response, access_token)
     return user
 
 
@@ -51,17 +45,7 @@ async def login(
         )
     
     access_token = AuthService.create_user_token(user)
-    
-    # Set cookie with proper security settings
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        max_age=settings.jwt_access_token_expire_minutes * 60,  # Convert to seconds
-        httponly=True,  # Prevent XSS attacks
-        secure=not settings.debug,  # Use secure in production
-        samesite="lax"  # CSRF protection
-    )
-    
+    set_auth_cookie(response, access_token)
     return user
 
 @router.get("/me", response_model=UserResponse)
@@ -84,7 +68,7 @@ async def sign_out(
     current_user: User = Depends(get_current_active_user)
 ):
     """Sign out user and clear access token."""
-    response.delete_cookie("access_token")
+    clear_auth_cookie(response)
     return {"message": "Successfully logged out"}
 
 
@@ -128,15 +112,8 @@ async def google_oauth_callback(
         # Create JWT token
         access_token = AuthService.create_user_token(user)
         
-        # Set cookie
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            max_age=settings.jwt_access_token_expire_minutes * 60,
-            httponly=True,
-            secure=not settings.debug,
-            samesite="lax"
-        )
+        # Set cookie with proper cross-domain configuration
+        set_auth_cookie(response, access_token)
         
         return user
         
@@ -167,15 +144,8 @@ async def google_oauth_verify(
         # Create JWT token
         access_token = AuthService.create_user_token(user)
         
-        # Set cookie
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            max_age=settings.jwt_access_token_expire_minutes * 60,
-            httponly=True,
-            secure=not settings.debug,
-            samesite="lax"
-        )
+        # Set cookie with proper cross-domain configuration
+        set_auth_cookie(response, access_token)
         
         return user
         
