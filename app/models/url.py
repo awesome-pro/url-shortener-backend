@@ -13,7 +13,7 @@ class URLStatus(str, enum.Enum):
 class URL(Base):
     __tablename__ = "urls"
 
-    id = Column(String(255), primary_key=True, index=True, default=uuid.uuid4().hex)
+    id = Column(String(255), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     original_url = Column(Text, nullable=False)
     short_code = Column(String(10), unique=True, index=True, nullable=False)
     title = Column(String(255), nullable=True)

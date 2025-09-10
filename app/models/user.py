@@ -20,7 +20,7 @@ class UserStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(String(255), primary_key=True, index=True, default=uuid.uuid4().hex)
+    id = Column(String(255), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(50), unique=True, index=True, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)

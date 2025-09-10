@@ -1,5 +1,7 @@
 import string
 import secrets
+import uuid
+import json
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
@@ -10,7 +12,6 @@ from app.models.user import User
 from app.schemas.url import URLCreate, URLUpdate
 from app.core.config import settings
 from app.database.connection import get_redis_client
-import json
 
 
 class URLShortenerService:
@@ -60,8 +61,9 @@ class URLShortenerService:
         else:
             short_code = await URLShortenerService.generate_unique_short_code(db)
         
-        # Create URL record
+        # Create URL record with explicit UUID
         db_url = URL(
+            id=uuid.uuid4().hex,  # Explicitly generate UUID
             original_url=str(url_data.original_url),
             short_code=short_code,
             title=url_data.title,
