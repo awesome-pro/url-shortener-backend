@@ -1,6 +1,5 @@
-# URL Shortener Backend  - [Swagger Docs](https://shorturl.abhinandan.pro/docs)
+# URL Shortener Backend  -- [Swagger Docs](https://shorturl.abhinandan.pro/docs) -- [🔗 Live Link](https://shortenurl.abhinandan.pro)
 
-## [🔗 Live Link](https://shortenurl.abhinandan.pro)
 
 <img width="400" height="225" alt="Screenshot 2025-09-11 at 8 16 15 AM" src="https://github.com/user-attachments/assets/ba9bbae8-647e-4c3b-9680-2fb75b7a91b3" />
 <img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 16 31 AM" src="https://github.com/user-attachments/assets/9ce2dbae-21cc-43a6-b629-bf7e00d3bc0a" />
