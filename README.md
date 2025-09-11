@@ -1,4 +1,15 @@
-# URL Shortener Backend
+# URL Shortener Backend  - [Swagger Docs](https://shorturl.abhinandan.pro/docs)
+
+## [🔗 Live Link](https://shortenurl.abhinandan.pro)
+
+<img width="400" height="225" alt="Screenshot 2025-09-11 at 8 16 15 AM" src="https://github.com/user-attachments/assets/ba9bbae8-647e-4c3b-9680-2fb75b7a91b3" />
+<img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 16 31 AM" src="https://github.com/user-attachments/assets/9ce2dbae-21cc-43a6-b629-bf7e00d3bc0a" />
+<img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 04 51 AM" src="https://github.com/user-attachments/assets/bd026335-d351-40e7-b043-7af50d43917e" />
+<img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 05 58 AM" src="https://github.com/user-attachments/assets/6d2399ec-f57a-4892-9cb4-7d2f7a7150ef" />
+<img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 06 04 AM" src="https://github.com/user-attachments/assets/00a06e62-3895-4517-bb60-ab61887a760e" />
+<img  width="400" height="225" alt="Screenshot 2025-09-11 at 8 06 25 AM" src="https://github.com/user-attachments/assets/afc2a4ff-e8e5-4e0c-ae93-66bff022493f" />
+
+
 
 A high-performance URL shortener API built with FastAPI, PostgreSQL, and Redis.
 
